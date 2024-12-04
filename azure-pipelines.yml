@@ -1,0 +1,42 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main  # Trigger pipeline on changes to the main branch
+
+pool:
+  name: RaspberryPi4
+
+
+steps:
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y python3 python3-pip
+    python3 --version
+  displayName: 'Setup Python'
+
+- script: |
+    # Install Edge Impulse CLI
+    npm install -g edge-impulse-cli
+    edge-impulse-linux-runner --version
+    # Install required Python packages
+    # pip3 install tflite-runtime opencv-python
+  displayName: 'Set up Environment'
+
+- script: |
+    # Download the model from Edge Impulse
+    edge-impulse-linux-runner --download --api-key $(EI_API_KEY) --project-id $(EI_PROJECT_ID) -o model.tflite
+  displayName: 'Download Edge Impulse Model'
+
+# - script: |
+#     # Deploy the model to the Raspberry Pi
+#     scp model.tflite pi@raspberrypi:/home/pi/model.tflite
+#     scp app.py pi@raspberrypi:/home/pi/app.py
+#   displayName: 'Deploy Model and Application'
+
+# - script: |
+#     # Execute the inference script on the Raspberry Pi
+#     ssh pi@raspberrypi "python3 /home/pi/app.py"
+#   displayName: 'Run Application'
