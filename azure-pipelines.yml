@@ -19,7 +19,8 @@ steps:
 
 - script: |
     # Install Edge Impulse CLI
-    npm install -g edge-impulse-linux-runner
+    npm install -g edge-impulse-cli
+    edge-impulse-linux-runner --version
     # Install required Python packages
     # pip3 install tflite-runtime opencv-python
   displayName: 'Set up Environment'
