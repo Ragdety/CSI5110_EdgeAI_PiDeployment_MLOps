@@ -6,8 +6,8 @@
 trigger:
 - main  # Trigger pipeline on changes to the main branch
 
-pool:
-  name: RaspberryPiPool
+queue:
+  name: Default
 
 steps:
 - task: UsePythonVersion@0
