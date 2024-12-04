@@ -2,12 +2,18 @@ import requests
 import json
 import time
 import re
+import logging
 
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 class EdgeImpulseClient:
     base_url = "https://studio.edgeimpulse.com/v1/api"
 
-    def __init__(self, project_id, api_key, deploy_type="zip"):
+    def __init__(self, 
+                 project_id,
+                 api_key, 
+                 deploy_type="zip",
+                 logging_level=logging.DEBUG):
         """
         Initialize the Edge Impulse Client.
         :param project_id: The project ID from Edge Impulse
@@ -23,20 +29,33 @@ class EdgeImpulseClient:
             "Content-Type": "application/json",
         }
 
+        # Logging Configuration
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging_level)
+
     def build(self):
         """
         Start building the model on the Edge Impulse platform.
         :return: Job ID
         """
+        self.logger.info("Building Edge Impulse model...")
+
         url = f"{self.base_url}/{self.project_id}/jobs/build-ondevice-model"
+
+        self.logger.info(f'URL: {url}')
+
         querystring = {"type": self.deploy_type}
         payload = {"engine": "tflite-eon"}
+
+        self.logger.debug(f'Headers: {self.headers}')
 
         response = requests.post(url, json=payload, headers=self.headers, params=querystring)
         body = response.json()
 
         if not body["success"]:
+            self.logger.error("Error building model")
             raise Exception(body["error"])
+        
         return body["id"]
 
     def get_stdout(self, job_id, skip_line_no):
@@ -51,9 +70,11 @@ class EdgeImpulseClient:
         body = response.json()
 
         if not body["success"]:
+            self.logger.error("Error fetching job output")
             raise Exception(body["error"])
         
         stdout = body["stdout"][::-1]  # reverse array so it's old -> new
+
         return [x["data"] for x in stdout[skip_line_no:]]
 
     def wait_for_job_completion(self, job_id):
@@ -79,6 +100,7 @@ class EdgeImpulseClient:
                 time.sleep(1)
                 continue
             if not body["job"]["finishedSuccessful"]:
+                self.logger.error("Job failed")
                 raise Exception("Job failed")
             else:
                 break
@@ -88,6 +110,8 @@ class EdgeImpulseClient:
         Download the built model.
         :return: Filename and binary content of the model
         """
+        self.logger.info("Downloading Edge Impulse model")
+
         url = f"{self.base_url}/{self.project_id}/deployment/download"
         querystring = {"type": self.deploy_type}
 
