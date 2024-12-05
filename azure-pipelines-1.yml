@@ -11,26 +11,37 @@ steps:
 #     addToPath: true
 
 - script: |
-    # Install dependencies
-    pip install -r requirements.txt
-    pip install python-dotenv
+    python -m venv venv  
+    source venv/bin/activate  
+    python -m pip install --upgrade pip setuptools wheel
+    pip install requests python-dotenv
+  displayName: "Set up Python virtual environment"
+    
+- script: |
+    source venv/bin/activate
 
     # Set up the Edge Impulse CLI
     python src/main.py setup --project_id $(EI_PROJECT_ID) --api_key $(EI_API_KEY) --deploy_type $(DEPLOY_TYPE)
   displayName: "Setup Edge Impulse CLI"
 
 - script: |
+    source venv/bin/activate
+
     # Build the model
     JOB_ID=$(python src/main.py build | grep -oP '(?<=Job ID: )\w+')
     echo "##vso[task.setvariable variable=JOB_ID]$JOB_ID"
   displayName: "Build Model"
 
 - script: |
+    source venv/bin/activate
+    
     # Wait for job completion
     python src/main.py wait_for_job_completion --job_id $(JOB_ID)
   displayName: "Wait for Job Completion"
 
 - script: |
+    source venv/bin/activate
+    
     # Deploy the model
     python src/main.py deploy_model
   displayName: "Deploy Model"
