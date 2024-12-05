@@ -13,7 +13,7 @@ class EdgeImpulseClient:
                  project_id,
                  api_key, 
                  deploy_type="zip",
-                 logging_level=logging.DEBUG):
+                 logging_level=logging.INFO):
         """
         Initialize the Edge Impulse Client.
         :param project_id: The project ID from Edge Impulse
